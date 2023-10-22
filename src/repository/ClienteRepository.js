@@ -1,7 +1,7 @@
 import Repository from "./Repository.js"
 import ClienteModel from "../models/ClienteModel.js";
 
-class CachorroRepository extends Repository {
+class ClienteRepository extends Repository {
 
     /**
      * Método para criar endereço do usuário
@@ -48,4 +48,4 @@ class CachorroRepository extends Repository {
     static async deletarClientePorId(id){
         await this.deleteById(ClienteModel, id)
     }
-} export default CachorroRepository
+} export default ClienteRepository

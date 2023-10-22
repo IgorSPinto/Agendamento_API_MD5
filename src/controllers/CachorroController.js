@@ -1,13 +1,13 @@
 import CachorroModel from "../models/CachorroModel.js";
 import ValidacaoServices from "../services/CachorroValidacao.js";
-import CachorroDAO from "../DAO/CachorroDAO.js";
+import CachorroRepository from "../repository/CachorroRepository.js"
 
 class CachorroController {
     static rotas(app) {
         // Rota para buscar todos os cachorros
         app.get("/cachorro", async (req, res) => {
             try {
-                const cachorro = await CachorroDAO.buscarTodosOsCachorros();
+                const cachorro = await CachorroRepository.buscarTodosOsCachorros();
                 res.status(200).json(cachorro);
             } catch (error) {
                 res.status(500).json({ error: true, message: "Erro ao buscar cachorro" });
@@ -18,7 +18,7 @@ class CachorroController {
         app.get("/cachorro/:id", async (req, res) => {
             const id = req.params.id;
             try {
-                const cachorro = await CachorroDAO.buscarCachorroPorId(id);
+                const cachorro = await CachorroRepository.buscarCachorroPorId(id);
                 if (cachorro) {
                     res.status(200).json(cachorro);
                 } else {
@@ -33,7 +33,7 @@ class CachorroController {
         app.delete("/cachorro/:id", async (req, res) => {
             const id = req.params.id;
             try {
-                const cachorro = await CachorroDAO.buscarCachorroPorId(id);
+                const cachorro = await CachorroRepository.buscarCachorroPorId(id);
                 if (cachorro) {
                     await CachorroDAO.deletarCachorroPorId(id);
                     res.status(200).json({ error: false });
@@ -57,7 +57,7 @@ class CachorroController {
 
             const cachorroModelado = new CachorroModel(body.nome, body.raca, body.cor, body.sexo,body.peso);
             try {
-                await CachorroDAO.inserirCachorro(cachorroModelado);
+                await CachorroRepository.inserirCachorro(cachorroModelado);
                 res.status(201).json({
                     error: false,
                     message: "Cachorro criado com sucesso"
@@ -77,7 +77,7 @@ class CachorroController {
                 ValidacaoServices.validaCamposCachorro(body.nome, body.raca, body.cor, body.sexo, body.peso)
                 await ValidacaoServices.validarExistencia(id)
                 const cachorroModelado = new CachorroModel(body.nome, body.raca, body.cor, body.sexo, body.peso)
-                await CachorroDAO.AtualizarCachorroPorId(id, cachorroModelado)
+                await CachorroRepository.atualizarCachorroPorId(id, cachorroModelado)
                 res.status(204).json()
             } catch (error) {
                 if (error.message == "Campos invalidos") {

@@ -1,23 +1,20 @@
-import DAO from "../DAO/DAO.js"; // Importa o DAO 
+import Repository from "../repository/Repository.js";
 
 class ValidacaoServices {
-    /**
-     * Método que valida a existência do id no banco de dados
-     * @param {integer} id 
-     * @returns {boolean}
-     */
-    static validarExistencia(id) {
-        const registroUnico = DAO.buscarPorId(id);
-        return registroUnico !== null;
+    static async exists(MongooseModel, id){
+        try{
+            const response = await Repository.findById(MongooseModel, id)
+            if(response == null){
+                throw new error()
+            }
+            return true
+        }catch(error){
+            return false 
+        }
     }
 
-    /**
-     * Método de validação de nome
-     * @param {string} nome 
-     * @returns {boolean}
-     */
-    static validaNome(nome) {
-        return typeof nome === "string" && nome.length > 2;
+    static validarNome(nome){
+        return nome.length > 2 && isNaN(nome)
     }
 }
 

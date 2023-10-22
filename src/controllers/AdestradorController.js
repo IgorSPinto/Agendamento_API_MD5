@@ -1,4 +1,4 @@
-import AdestradorDAO from "../DAO/AdestradorDAO.js"
+import AdestradorRepository from "../repository/AdestradorRepository.js"
 import AdestradorModel from "../models/AdestradorModel.js"
 import ValidacaoServices from "../services/AdestradorValidacao.js"
 
@@ -13,7 +13,7 @@ class AdestradorController {
          * Rota para buscar todos os Adestradores
          */
         app.get("/adestrador", async (req, res) => {
-            const adestrador = await AdestradorDAO.buscarTodosEmAdestrador()
+            const adestrador = await AdestradorRepository.buscarTodosEmAdestrador()
             res.status(200).json(adestrador)
         })
 
@@ -23,7 +23,7 @@ class AdestradorController {
         app.get("/adestrador/:id", async (req, res) => {
             const id = req.params.id;
             try {
-                const adestrador = await AdestradorDAO.buscarAdestradorPorId(id);
+                const adestrador = await AdestradorRepository.buscarAdestradorPorId(id);
                 if (adestrador) {
                     res.status(200).json(adestrador);
                 } else {
@@ -40,7 +40,7 @@ class AdestradorController {
         app.delete("/adestrador/:id", async (req, res) => {
             const id = req.params.id
             try {
-                const adestrador = await AdestradorDAO.buscarAdestradorPorId(id);
+                const adestrador = await AdestradorRepository.buscarAdestradorPorId(id);
                 if (adestrador) {
                     await AdestradorDAO.deletarAdestradorPorId(id);
                     res.status(200).json({ error: false });
@@ -64,7 +64,7 @@ class AdestradorController {
 
             const adestradorModelado = new AdestradorModel(body.nome, body.formacao, body.id_agendamento, body.id_endereco);
             try {
-                await AdestradorDAO.inserirAdestrador(adestradorModelado);
+                await AdestradorRepository.inserirAdestrador(adestradorModelado);
                 res.status(201).json({
                     error: false,
                     message: "Cliente criado com sucesso"
@@ -84,7 +84,7 @@ class AdestradorController {
                 ValidacaoServices.validaCamposAdestrador(body.nome, body.formacao, body.id_agendamento, body.id_endereco)
                 await ValidacaoServices.validarExistencia(id)
                 const adestradorModelado = new AdestradorModel(body.nome, body.formacao, body.id_agendamento, body.id_endereco)
-                await AdestradorDAO.AtualizarAdestradorPorId(id, adestradorModelado)
+                await AdestradorDAO.atualizarAdestradorPorId(id, adestradorModelado)
                 res.status(204).json()
             } catch (error) {
                 if (error.message == "Campos invalidos") {

@@ -1,13 +1,13 @@
 import ClienteModel from "../models/ClienteModel.js";
 import ValidacaoServices from "../services/ClienteValidacao.js";
-import ClienteDAO from "../DAO/ClienteDAO.js";
+import ClienteRepository from "../repository/ClienteRepository.js"
 
 class ClientesController {
     static rotas(app) {
         // Rota para buscar todos os clientes
         app.get("/clientes", async (req, res) => {
             try {
-                const clientes = await ClienteDAO.buscarTodosOsClientes();
+                const clientes = await ClienteRepository.buscarTodosOsClientes();
                 res.status(200).json(clientes);
             } catch (error) {
                 res.status(500).json({ error: true, message: "Erro ao buscar clientes" });
@@ -18,7 +18,7 @@ class ClientesController {
         app.get("/clientes/:id", async (req, res) => {
             const id = req.params.id;
             try {
-                const cliente = await ClienteDAO.buscarClientePorId(id);
+                const cliente = await ClienteRepository.buscarClientePorId(id);
                 if (cliente) {
                     res.status(200).json(cliente);
                 } else {
@@ -33,7 +33,7 @@ class ClientesController {
         app.delete("/clientes/:id", async (req, res) => {
             const id = req.params.id;
             try {
-                const cliente = await ClienteDAO.buscarClientePorId(id);
+                const cliente = await ClienteRepository.buscarClientePorId(id);
                 if (cliente) {
                     await ClienteDAO.deletarClientePorId(id);
                     res.status(200).json({ error: false });
@@ -57,7 +57,7 @@ class ClientesController {
 
             const clienteModelado = new ClienteModel(body.nome, body.email, body.telefone, body.id_endereco);
             try {
-                await ClienteDAO.inserirCliente(clienteModelado);
+                await ClienteRepository.inserirCliente(clienteModelado);
                 res.status(201).json({
                     error: false,
                     message: "Cliente criado com sucesso"
@@ -77,7 +77,7 @@ class ClientesController {
                 ValidacaoServices.validaCamposCliente(body.nome, body.email, body.telefone, body.id_endereco)
                 await ValidacaoServices.validarExistencia(id)
                 const clienteModelado = new ClienteModel(body.nome, body.email, body.telefone, body.id_endereco)
-                await ClienteDAO.AtualizarClientePorId(id, clienteModelado)
+                await ClienteRepository.atualizarClientePorId(id, clienteModelado)
                 res.status(204).json()
             } catch (error) {
                 if (error.message == "Campos invalidos") {

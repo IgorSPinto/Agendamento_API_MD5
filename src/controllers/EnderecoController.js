@@ -1,6 +1,6 @@
 import EnderecoModel from "../models/EnderecoModel.js"
 import ValidacaoServices from "../services/EnderecoValidacao.js"
-import EnderecoDAO from "../DAO/EnderecoDAO.js"
+import EnderecoRepository from "../repository/EnderecoRepository.js"
 
 class EnderecoController {
     /**
@@ -12,7 +12,7 @@ class EnderecoController {
          * Rota para buscar todos os endereços
          */
         app.get("/endereco", async (req, res) => {
-            const endereco = await EnderecoDAO.buscarTodosOsEnderecos()
+            const endereco = await EnderecoRepository.buscarTodosOsEnderecos()
             res.status(200).json(endereco)
         })
 
@@ -22,7 +22,7 @@ class EnderecoController {
         app.get("/endereco/:id", async (req, res) => {
             const id = req.params.id
             try {
-                const endereco = await EnderecoDAO.buscarEnderecoPorId(id);
+                const endereco = await EnderecoRepository.buscarEnderecoPorId(id);
                 if (endereco) {
                     res.status(200).json(endereco);
                 } else {
@@ -39,7 +39,7 @@ class EnderecoController {
         app.delete("/endereco/:id", async (req, res) => {
             const id = req.params.id
             try {
-                const endereco = await EnderecoDAO.buscarEnderecoPorId(id);
+                const endereco = await EnderecoRepository.buscarEnderecoPorId(id);
                 if (endereco) {
                     await EnderecoDAO.deletarEnderecoPorId(id);
                     res.status(200).json({ error: false });
@@ -59,7 +59,7 @@ class EnderecoController {
             try {
                 ValidacaoServices.validaCamposEndereco(...body)
                 const enderecoModelado = new EnderecoModel(...body)
-                await EnderecoDAO.inserirEndereco(enderecoModelado)
+                await EnderecoRepository.inserirEndereco(enderecoModelado)
                 res.status(201).json({
                     error: false,
                     message: "Endereço adicioando com sucesso"
@@ -79,7 +79,7 @@ class EnderecoController {
                 ValidacaoServices.validaCamposEndereco(body.cep, body.numero, body.complemento)
                 await ValidacaoServices.validarExistencia(id)
                 const enderecoModelado = new EnderecoModel(body.cep, body.numero, body.complemento)
-                EnderecoDAO.AtualizarEnderecoPorId(id, enderecoModelado)
+                EnderecoRepository.atualizarEnderecoPorId(id, enderecoModelado)
                 res.status(204).json()
             } catch (error) {
                 if (error.message == "Campos invalidos") {
