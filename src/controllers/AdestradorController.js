@@ -40,7 +40,7 @@ class AdestradorController {
         app.delete("/adestrador/:id", async (req, res) => {
             const id = req.params.id
             try {
-                const adestrador = await AdestradorRepository.buscarAdestradorPorId(id);
+                const adestrador = await AdestradorRepository.deletarAdestradorPorId(id);
                 if (adestrador) {
                     await AdestradorDAO.deletarAdestradorPorId(id);
                     res.status(200).json({ error: false });
