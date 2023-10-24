@@ -1,4 +1,4 @@
-import Repository from "./Repository.js"
+import Repository from "../repository/Repository.js"
 import AdestradorModel from "../models/AdestradorModel.js";
 
 class AdestradorRepository extends Repository {
