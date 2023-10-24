@@ -1,4 +1,6 @@
-class AdestradorValidacao {
+import ValidacaoServices from "./ValidacaoServices.js";
+
+class AdestradorValidacao extends ValidacaoServices {
   static validaNome(nome) {
     return typeof nome === "string" && nome.trim() !== "";
   }
