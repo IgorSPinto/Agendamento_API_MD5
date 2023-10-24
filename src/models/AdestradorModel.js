@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import AdestradorValidacao from './AdestradorValidacao';
+import AdestradorValidacao from '../services/AdestradorValidacao.js';
 
 const adestradorSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -19,13 +19,15 @@ adestradorSchema.methods.generateAuthToken = function () {
 adestradorSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     // Verificar se a senha atende às validações de AdestradorValidacao
-    AdestradorValidacao.validaSenha(this.password);
+    if (!AdestradorValidacao.validaSenha(this.password)) {
+      throw new Error('Senha inválida');
+    }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   }
   next();
 });
 
-const Adestrador = mongoose.model('Adestrador', adestradorSchema);
+const AdestradorModel = mongoose.model('Adestrador', adestradorSchema);
 
-module.exports = Adestrador;
+export default AdestradorModel;
