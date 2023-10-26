@@ -20,7 +20,7 @@ class AdestradorController {
       const id = req.params.id
       const valido = await AdestradorValidacao.validarBusca(id)
       if (valido) {
-        const adestrador = await AdestradorRepository.buscarClientePorId(id)
+        const adestrador = await AdestradorRepository.buscarAdestradorPorId(id)
         res.status(200).json(adestrador)
       } else {
         res.status(404).json({ message: "Cliente não encontrado" })
