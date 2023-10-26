@@ -14,7 +14,7 @@ class AdestradorController {
     })
 
     /**
-     * Rota para buscar usuários pelo id
+     * Rota para buscar adestrador pelo id
      */
     app.get("/adestrador/:id", async (req, res) => {
       const id = req.params.id
@@ -23,26 +23,26 @@ class AdestradorController {
         const adestrador = await AdestradorRepository.buscarAdestradorPorId(id)
         res.status(200).json(adestrador)
       } else {
-        res.status(404).json({ message: "Cliente não encontrado" })
+        res.status(404).json({ message: "Adestrador não encontrado" })
       }
     })
 
     /**
-     * Rota para deletar agendamento
+     * Rota para deletar adestrador
      */
     app.delete("/adestrador/:id", async (req, res) => {
       const id = req.params.id
       const valido = await AdestradorValidacao.validarBusca(id)
       if (valido) {
-        await AdestradorRepository.deletarAgendamento(id)
-        res.status(200).json({ message: 'Cliente deletado com sucesso' })
+        await AdestradorRepository.deletarAdestrador(id)
+        res.status(200).json({ message: 'Adestrador deletado com sucesso' })
       } else {
-        res.status(404).json({ message: "Cliente não encontrado" })
+        res.status(404).json({ message: "Adestrador não encontrado" })
       }
     })
 
     /**
-     * Rota para inserir um novo agendamento
+     * Rota para inserir um novo adestrador
      */
     app.post("/adestrador", async (req, res) => {
       const body = req.body
