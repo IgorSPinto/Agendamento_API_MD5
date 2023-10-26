@@ -1,9 +1,14 @@
 import mongoose from "mongoose";
 
-const Adestrador = mongoose.model("Adestrador", {
+const adestradorSchema = new mongoose.Schema({
     nome: String,
-    email: String, 
-    senha: String, 
-})
+    email: {
+        type: String,
+        unique: true, 
+    },
+    senha: String,
+});
+
+const Adestrador = mongoose.model("Adestrador", adestradorSchema);
 
 export default Adestrador;

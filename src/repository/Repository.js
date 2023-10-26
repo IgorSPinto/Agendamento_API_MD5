@@ -62,6 +62,17 @@ class Repository {
     static async deleteById(mongoModel, id){
         await mongoModel.findOneAndDelete({_id:id})
     }
+
+    /**
+     * Método geral para buscar um documento com base em um critério de consulta
+     * @param {mongooseModel} mongoModel 
+     * @param {Object} query - O critério de consulta
+     * @returns {Data}
+     */
+    static async findOne(mongoModel, query) {
+        const response = await mongoModel.findOne(query);
+        return response;
+    }
 }
 
 export default Repository
