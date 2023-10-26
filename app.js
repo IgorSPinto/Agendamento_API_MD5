@@ -7,6 +7,7 @@ import AgendamentoController from "./src/controllers/AgendamentoController.js"
 import CachorroController from "./src/controllers/CachorroController.js"
 import ClienteController from "./src/controllers/ClienteController.js"
 import EnderecoController from "./src/controllers/EnderecoController.js"
+import EnderecoUnidadeController from "./src/controllers/EnderecoUnidadeController.js";
 
 config()
 
@@ -41,3 +42,4 @@ AgendamentoController.rotas(app)
 CachorroController.rotas(app)
 ClienteController.rotas(app)
 EnderecoController.rotas(app)
+EnderecoUnidadeController.rotas(app)

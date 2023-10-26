@@ -1,127 +1,74 @@
 import AdestradorRepository from "../repository/AdestradorRepository.js";
-import AdestradorModel from "../models/AdestradorModel.js";
-import ValidacaoServices from "../services/AdestradorValidacao.js";
+import AdestradorValidacao from "../services/AdestradorValidacao.js";
 
 class AdestradorController {
-  /**
-   * Método para centralização de rotas no controller
-   * @param {Express} app 
-   */
+      /**
+      * @param {Express} app 
+      */
+
   static rotas(app) {
-    /**
-     * Rota para buscar todos os Adestradores
-     */
-    app.get("/config", async (req, res) => {
-      const adestrador = await AdestradorRepository.buscarTodosEmAdestrador();
-      res.status(200).json(adestrador);
-    });
+
+    app.get("/adestrador", async (req, res) => {
+      const adestrador = await AdestradorRepository.buscarAdestrador()
+      res.status(200).json(adestrador)
+    })
 
     /**
-     * Rota para buscar adestradores pelo id
+     * Rota para buscar usuários pelo id
      */
-    app.get("/config/:id", async (req, res) => {
-      const id = req.params.id;
-      try {
-        const adestrador = await AdestradorRepository.buscarAdestradorPorId(id);
-        if (adestrador) {
-          res.status(200).json(adestrador);
-        } else {
-          res.status(404).json({ error: true, message: `Adestrador não encontrado para o id ${id}` });
-        }
-      } catch (error) {
-        res.status(500).json({ error: true, message: "Erro ao buscar adestrador" });
+    app.get("/adestrador/:id", async (req, res) => {
+      const id = req.params.id
+      const valido = await AdestradorValidacao.validarBusca(id)
+      if (valido) {
+        const adestrador = await AdestradorRepository.buscarClientePorId(id)
+        res.status(200).json(adestrador)
+      } else {
+        res.status(404).json({ message: "Cliente não encontrado" })
       }
-    });
-
-        /**
-         * Rota para deletar adestrador
-         */
-        app.delete("/adestrador/:id", async (req, res) => {
-            const id = req.params.id
-            try {
-                const adestrador = await AdestradorRepository.buscarAdestradorPorId(id);
-                if (adestrador) {
-                    await AdestradorDAO.deletarAdestradorPorId(id);
-                    res.status(200).json({ error: false });
-                } else {
-                    res.status(404).json({ error: true, message: `Adestrador não encontrado para o id ${id}` });
-                }
-            } catch (error) {
-                res.status(500).json({ error: true, message: "Erro ao deletar adestrador" });
-            }
-        })
-
-    // Rota para inserir um novo adestrador
-    app.post("/config", async (req, res) => {
-      const body = req.body;
-
-      // Verifique se todos os campos obrigatórios estão presentes na requisição
-      if (!body.nome || !body.email || !body.senha) {
-        res.status(400).json({ error: true, message: "Campos obrigatórios não preenchidos" });
-        return; // Encerre a função aqui para evitar a execução do código abaixo
-      }
-
-      const adestradorModelado = new AdestradorModel(body.nome, body.email, body.senha);
-      try {
-        await AdestradorRepository.inserirAdestrador(adestradorModelado);
-        res.status(201).json({
-          error: false,
-          message: "Adestrador cadastrado com sucesso"
-        });
-      } catch (error) {
-        res.status(503).json({ error: true, message: "Servidor indisponível no momento" });
-      }
-    });
+    })
 
     /**
-     * Rota para atualizar um registro de um adestrador
+     * Rota para deletar agendamento
      */
-    app.put("/config/:id", async (req, res) => {
-      const id = req.params.id;
-      const body = req.body;
-      try {
-        ValidacaoServices.validaCamposAdestrador(body.nome, body.email, body.senha);
-        await ValidacaoServices.validarExistencia(id);
-        const adestradorModelado = new AdestradorModel(body.nome, body.email, body.senha);
-        await AdestradorRepository.atualizarAdestradorPorId(id, adestradorModelado);
-        res.status(204).json();
-      } catch (error) {
-        if (error.message === "Campos inválidos") {
-          res.status(400).json({ error: error.message });
-        } else {
-          res.status(404).json({ id: id, ...error });
-        }
+    app.delete("/adestrador/:id", async (req, res) => {
+      const id = req.params.id
+      const valido = await AdestradorValidacao.validarBusca(id)
+      if (valido) {
+        await AdestradorRepository.deletarAgendamento(id)
+        res.status(200).json({ message: 'Cliente deletado com sucesso' })
+      } else {
+        res.status(404).json({ message: "Cliente não encontrado" })
       }
-    });
+    })
 
     /**
-     * Rota para realizar o login de um adestrador
+     * Rota para inserir um novo agendamento
      */
-    app.post("/login", async (req, res) => {
-      const { email, senha } = req.body;
-
-      // Verifique se o email e senha estão presentes na requisição
-      if (!email || !senha) {
-        res.status(400).json({ error: true, message: "Email e senha são obrigatórios." });
-        return;
+    app.post("/adestrador", async (req, res) => {
+      const body = req.body
+      const valido = AdestradorValidacao.validarCamposAdestrador(...Object.values(body))
+      if (valido) {
+        const id = await AdestradorRepository.criarAdestrador(body)
+        res.status(201).json({ message: 'Adestrador criado com sucesso', id: `${id}` })
+      } else {
+        res.status(400).json({ message: "Operação inválida, verifique os campos e tente novamente" })
       }
+    })
 
-      try {
-        // Realize a autenticação do adestrador com base no email e senha
-        const adestrador = await AdestradorRepository.autenticarAdestrador(email, senha);
-
-        if (adestrador) {
-          // Autenticação bem-sucedida, gere um token JWT e envie como resposta
-          const token = adestrador.generateAuthToken();
-          res.status(200).json({ token });
-        } else {
-          // Autenticação falhou
-          res.status(401).json({ error: true, message: "Credenciais inválidas" });
-        }
-      } catch (error) {
-        res.status(500).json({ error: true, message: "Erro ao realizar o login" });
+    /**
+     * Rota para atualizar um registro já existente na tabela agendamento
+     */
+    app.put("/adestrador/:id", async (req, res) => {
+      const id = req.params.id
+      const data = req.body
+      const valido = await AdestradorValidacao.validarBusca(id)
+      if (valido) {
+        await AdestradorRepository.atualizarAdestrador(id, data)
+        res.status(200).json({ message: "Adestrador atualizado com sucesso" })
+      } else {
+        res.status(404).json({ message: "Adestrador não encontrado" })
       }
-    });
+    })
   }
 }
 

@@ -1,5 +1,5 @@
 import EnderecoModel from "../models/EnderecoModel.js"
-import ValidacaoServices from "../services/EnderecoValidacao.js"
+import EnderecoValidacao from "../services/EnderecoValidacao.js"
 import EnderecoRepository from "../repository/EnderecoRepository.js"
 
 class EnderecoController {
@@ -41,7 +41,7 @@ class EnderecoController {
             try {
                 const endereco = await EnderecoRepository.buscarEnderecoPorId(id);
                 if (endereco) {
-                    await EnderecoDAO.deletarEnderecoPorId(id);
+                    await EnderecoRepository.deletarEnderecoPorId(id);
                     res.status(200).json({ error: false });
                 } else {
                     res.status(404).json({ error: true, message: `Endereço não encontrado para o id ${id}` });
@@ -55,17 +55,13 @@ class EnderecoController {
          * Rota para inserir um novo endereço
          */
         app.post("/endereco", async (req, res) => {
-            const body = Object.values(req.body)
-            try {
-                ValidacaoServices.validaCamposEndereco(...body)
-                const enderecoModelado = new EnderecoModel(...body)
-                await EnderecoRepository.inserirEndereco(enderecoModelado)
-                res.status(201).json({
-                    error: false,
-                    message: "Endereço adicioando com sucesso"
-                })
-            } catch (error) {
-                res.status(400).json({ error: error.message })
+            const body = req.body
+            const valido = EnderecoValidacao.validaCamposEndereco(...Object.values(body))
+            if(valido) {
+                const id = await EnderecoRepository.inserirEndereco(body)
+                res.status(201).json({ message: 'Endereço do Usuário criado com sucesso', id: `${id}`})
+            } else {
+                res.status(400).json({message:"Operação inválida, verifique os campos e tente novamente"})
             }
         })
 
@@ -76,8 +72,8 @@ class EnderecoController {
             const id = req.params.id
             const body = req.body
             try {
-                ValidacaoServices.validaCamposEndereco(body.cep, body.numero, body.complemento)
-                await ValidacaoServices.validarExistencia(id)
+                EnderecoValidacao.validaCamposEndereco(body.cep, body.numero, body.complemento)
+                await EnderecoValidacao.validarExistencia(id)
                 const enderecoModelado = new EnderecoModel(body.cep, body.numero, body.complemento)
                 EnderecoRepository.atualizarEnderecoPorId(id, enderecoModelado)
                 res.status(204).json()

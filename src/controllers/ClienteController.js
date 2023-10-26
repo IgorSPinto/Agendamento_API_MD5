@@ -1,94 +1,76 @@
-import ClienteModel from "../models/ClienteModel.js";
-import ValidacaoServices from "../services/ClienteValidacao.js";
+
+import ClienteValidacao from "../services/ClienteValidacao.js";
 import ClienteRepository from "../repository/ClienteRepository.js"
 
 class ClientesController {
+    /**
+     * @param {Express} app 
+     */
+
     static rotas(app) {
-        // Rota para buscar todos os clientes
-        app.get("/clientes", async (req, res) => {
-            try {
-                const clientes = await ClienteRepository.buscarTodosOsClientes();
-                res.status(200).json(clientes);
-            } catch (error) {
-                res.status(500).json({ error: true, message: "Erro ao buscar clientes" });
-            }
-        });
-
-        // Rota para buscar cliente pelo id
-        app.get("/clientes/:id", async (req, res) => {
-            const id = req.params.id;
-            try {
-                const cliente = await ClienteRepository.buscarClientePorId(id);
-                if (cliente) {
-                    res.status(200).json(cliente);
-                } else {
-                    res.status(404).json({ error: true, message: `Cliente não encontrado para o id ${id}` });
-                }
-            } catch (error) {
-                res.status(500).json({ error: true, message: "Erro ao buscar cliente" });
-            }
-        });
-
-        // Rota para deletar cliente
-        app.delete("/clientes/:id", async (req, res) => {
-            const id = req.params.id;
-            try {
-                const cliente = await ClienteRepository.buscarClientePorId(id);
-                if (cliente) {
-                    await ClienteDAO.deletarClientePorId(id);
-                    res.status(200).json({ error: false });
-                } else {
-                    res.status(404).json({ error: true, message: `Cliente não encontrado para o id ${id}` });
-                }
-            } catch (error) {
-                res.status(500).json({ error: true, message: "Erro ao deletar cliente" });
-            }
-        });
-
-        // Rota para inserir um novo cliente
-        app.post("/clientes", async (req, res) => {
-            const body = req.body;
-
-            // Verifique se todos os campos obrigatórios estão presentes na requisição
-            if (!body.nome || !body.email || !body.telefone || body.id_endereco === undefined) {
-                res.status(400).json({ error: true, message: "Campos obrigatórios não preenchidos" });
-                return; // Encerre a função aqui para evitar a execução do código abaixo
-            }
-
-            const clienteModelado = new ClienteModel(body.nome, body.email, body.telefone, body.id_endereco);
-            try {
-                await ClienteRepository.inserirCliente(clienteModelado);
-                res.status(201).json({
-                    error: false,
-                    message: "Cliente criado com sucesso"
-                });
-            } catch (error) {
-                res.status(503).json({ error: true, message: "Servidor indisponível no momento" });
-            }
-        });
+        
+        app.get("/cliente", async (req, res) => {
+            const cliente = await ClienteRepository.buscarClientes()
+            res.status(200).json(cliente)
+        })
 
         /**
-         * Rota para atualizar um registro de cliente
+         * Rota para buscar usuários pelo id
          */
-        app.put("/clientes/:id", async (req, res) => {
+        app.get("/cliente/:id", async (req, res) => {
             const id = req.params.id
-            const body = req.body
-            try {
-                ValidacaoServices.validaCamposCliente(body.nome, body.email, body.telefone, body.id_endereco)
-                await ValidacaoServices.validarExistencia(id)
-                const clienteModelado = new ClienteModel(body.nome, body.email, body.telefone, body.id_endereco)
-                await ClienteRepository.atualizarClientePorId(id, clienteModelado)
-                res.status(204).json()
-            } catch (error) {
-                if (error.message == "Campos invalidos") {
-                    res.status(400).json({ error: error.message })
-                } else {
-                    res.status(404).json({ id: id, ...error })
-                }
+            const valido = await ClienteValidacao.validarBusca(id)
+            if (valido) {
+                const cliente = await ClienteRepository.buscarClientePorId(id)
+                res.status(200).json(cliente)
+            } else {
+                res.status(404).json({ message: "Cliente não encontrado" })
             }
         })
-    }
 
+        /**
+         * Rota para deletar agendamento
+         */
+        app.delete("/cliente/:id", async (req, res) => {
+            const id = req.params.id
+            const valido = await ClienteValidacao.validarBusca(id)
+            if (valido) {
+                await ClienteRepository.deletarAgendamento(id)
+                res.status(200).json({ message: 'Cliente deletado com sucesso' })
+            } else {
+                res.status(404).json({ message: "Cliente não encontrado" })
+            }
+        })
+
+        /**
+         * Rota para inserir um novo agendamento
+         */
+        app.post("/cliente", async (req, res) => {
+            const body = req.body
+			const valido = ClienteValidacao.validarCamposCliente(...Object.values(body))
+			if (valido) {
+				const id = await ClienteRepository.criarCliente(body)
+				res.status(201).json({ message: 'Cliente criado com sucesso', id:`${id}` })
+			} else {
+				res.status(400).json({ message: "Operação inválida, verifique os campos e tente novamente" })
+			}
+        })
+
+        /**
+         * Rota para atualizar um registro já existente na tabela agendamento
+         */
+        app.put("/cliente/:id", async (req, res) => {
+            const id = req.params.id
+			const data = req.body
+			const valido = await ClienteValidacao.validarBusca(id)
+			if (valido) {
+				await ClienteRepository.atualizarAgendamento(id, data)
+				res.status(200).json({ message: "Cliente atualizado com sucesso" })
+			} else {
+				res.status(404).json({ message: "Cliente não encontrado" })
+			}
+        })
+    }
 }
 
 export default ClientesController;

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+/* import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import AdestradorValidacao from '../services/AdestradorValidacao.js';
@@ -33,21 +33,14 @@ const AdestradorModel = mongoose.model('Adestrador', adestradorSchema);
 // Exporte o modelo para torná-lo disponível em outros módulos
 export default AdestradorModel;
 
-// Função para criar um usuário adestrador
-async function criarAdestrador(nome, email, senha) {
-  const novoAdestrador = new AdestradorModel({
-    nome,
-    email,
-    senha
-  });
+ */
 
-  try {
-    await novoAdestrador.save();
-    console.log('Adestrador criado com sucesso');
-  } catch (error) {
-    console.error('Erro ao criar o adestrador:', error.message);
-  }
-}
+import mongoose from "mongoose";
 
-// criando um adestrador
-criarAdestrador('Joãozinho', 'joaozinho@gmail.com', 'senha123');
+const Adestrador = mongoose.model("Adestrador", {
+    nome: String,
+    email: String, 
+    senha: String, 
+})
+
+export default Adestrador;

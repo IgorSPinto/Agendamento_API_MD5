@@ -1,19 +1,16 @@
 import AgendamentoRepository from "../repository/AgendamentoRepository.js"
-import ValidacaoServices from "../services/AgendamentoValidacao.js"
-import AgendamentoModel from "../models/AgendamentoModel.js"
+import AgendamentoValidacao from "../services/AgendamentoValidacao.js"
 
 
 class AgendamentoController {
     /**
-     * Método para centralização de rotas no controller
      * @param {Express} app 
      */
+
     static rotas(app) {
-        /**
-         * Rota para buscar todos 
-         */
+        
         app.get("/agendamento", async (req, res) => {
-            const agendamento = await AgendamentoRepository.buscarTodosEmAgendamento()
+            const agendamento = await AgendamentoRepository.buscarAgendamento()
             res.status(200).json(agendamento)
         })
 
@@ -22,11 +19,12 @@ class AgendamentoController {
          */
         app.get("/agendamento/:id", async (req, res) => {
             const id = req.params.id
-            try {
-                const resposta = await AgendamentoRepository.buscarAgendamentoPorId(id)
-                res.status(200).json(resposta)
-            } catch (error) {
-                res.status(404).json({id: id, ...error})
+            const valido = await AgendamentoValidacao.validarBusca(id)
+            if (valido) {
+                const agendamento = await AgendamentoRepository.buscarAgendamentoPorId(id)
+                res.status(200).json(agendamento)
+            } else {
+                res.status(404).json({ message: "Agendamento não encontrado" })
             }
         })
 
@@ -35,12 +33,12 @@ class AgendamentoController {
          */
         app.delete("/agendamento/:id", async (req, res) => {
             const id = req.params.id
-            try {
-                await ValidacaoServices.validarExistencia(id)
-                AgendamentoRepository.deletarAgendamentoPorId(id)
-                res.status(200).json({ error: false })
-            } catch (error) {
-                res.status(404).json({ id: id, ...error })
+            const valido = await AgendamentoValidacao.validarBusca(id)
+            if (valido) {
+                await AgendamentoRepository.deletarAgendamento(id)
+                res.status(200).json({ message: 'Agendamento deletado com sucesso' })
+            } else {
+                res.status(404).json({ message: "Agendamento não encontrado" })
             }
         })
 
@@ -48,18 +46,14 @@ class AgendamentoController {
          * Rota para inserir um novo agendamento
          */
         app.post("/agendamento", async (req, res) => {
-            const body = Object.values(req.body)
-            try {
-                ValidacaoServices.validaCamposAgendamento(...body)
-                const agendamentoModelado = new AgendamentoModel(...body)
-                await AgendamentoRepository.inserirAgendamento(agendamentoModelado)
-                res.status(201).json({
-                    error: false,
-                    message: "Agendamento criado com sucesso"
-                })
-            } catch (error) {
-                res.status(400).json({error: error.message})
-            }
+            const body = req.body
+			const valido = AgendamentoValidacao.validarCamposAgendamento(...Object.values(body))
+			if (valido) {
+				const id = await AgendamentoRepository.criarAgendamento(body)
+				res.status(201).json({ message: 'Agendamento criado com sucesso', id:`${id}` })
+			} else {
+				res.status(400).json({ message: "Operação inválida, verifique os campos e tente novamente" })
+			}
         })
 
         /**
@@ -67,20 +61,14 @@ class AgendamentoController {
          */
         app.put("/agendamento/:id", async (req, res) => {
             const id = req.params.id
-            const body = req.body
-            try {
-                ValidacaoServices.validaCamposAgendamento(body.duracao, body.dia, body.hora, body.id_cachorro, body.id_adestrador)
-                await ValidacaoServices.validarExistencia(id)
-                const agendamentoModelado = new AgendamentoModel(body.duracao, body.dia, body.hora, body.id_cachorro, body.id_adestrador)
-                AgendamentoRepository.atualizarAgendamentoPorId(id, agendamentoModelado)
-                res.status(204).json()
-            } catch (error) {
-                if(error.message == "Campos invalidos"){
-                    res.status(400).json({error: error.message})
-                } else {
-                    res.status(404).json({id: id, ...error})
-                }
-            }
+			const data = req.body
+			const valido = await AgendamentoValidacao.validarBusca(id)
+			if (valido) {
+				await AgendamentoRepository.atualizarAgendamento(id, data)
+				res.status(200).json({ message: "Agendamento atualizado com sucesso" })
+			} else {
+				res.status(404).json({ message: "Agendamento não encontrado" })
+			}
         })
     }
 }

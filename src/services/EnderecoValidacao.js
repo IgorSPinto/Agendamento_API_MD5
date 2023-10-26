@@ -10,16 +10,9 @@ class EnderecoValidacao extends ValidacaoServices {
          */
 
    static validaCEP(cep) {
-        // Expressão regular para validar CEP no formato "XXXXX-XXX" ou "XXXXXXXX"
-        const cepRegex = /^\d{5}-?\d{3}$/;
-    
-        // Remove quaisquer traços no CEP, se houver
-        cep = cep.replace(/\D/g, '');
-    
-        // Verifica se o CEP corresponde ao formato esperado
-        if (cepRegex.test(cep)) {
-            return true; // CEP válido
-        }
+    if (cep !== '') {
+        return true; // Número válido 
+    }
     }
 
     /**
