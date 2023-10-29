@@ -35,7 +35,7 @@ class ClientesController {
             const id = req.params.id
             const valido = await ClienteValidacao.validarBusca(id)
             if (valido) {
-                await ClienteRepository.deletarAgendamento(id)
+                await ClienteRepository.deletarCliente(id)
                 res.status(200).json({ message: 'Cliente deletado com sucesso' })
             } else {
                 res.status(404).json({ message: "Cliente não encontrado" })
@@ -64,7 +64,7 @@ class ClientesController {
 			const data = req.body
 			const valido = await ClienteValidacao.validarBusca(id)
 			if (valido) {
-				await ClienteRepository.atualizarAgendamento(id, data)
+				await ClienteRepository.atualizarCliente(id, data)
 				res.status(200).json({ message: "Cliente atualizado com sucesso" })
 			} else {
 				res.status(404).json({ message: "Cliente não encontrado" })
