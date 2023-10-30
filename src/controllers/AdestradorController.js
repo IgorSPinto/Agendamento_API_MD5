@@ -4,10 +4,6 @@ import AdestradorValidacao from "../services/AdestradorValidacao.js";
 import bcrypt from "bcrypt";
 
 class AdestradorController {
-  /**
-   * @param {Express} app
-   */
-
   static rotas(app) {
     app.get("/adestrador", async (req, res) => {
       const adestrador = await AdestradorRepository.buscarAdestrador();
@@ -41,30 +37,16 @@ class AdestradorController {
       const emailExistente = await AdestradorRepository.buscarAdestradorPorEmail(body.email);
 
       if (emailExistente) {
-        res.status(422).json({ message: "Por favor, utilize outro e-mail" });
-        res.sttus(200).json({ message: "Email localizado" });
-      } else {
-        try {
-          // Use o bcrypt para criar um hash da senha
-          const senhaHash = await bcrypt.hash(body.senha, 10);
-          const novoAdestrador = new Adestrador({ ...body, senha: senhaHash });
-          await novoAdestrador.save();
-          res.status(201).json({ message: 'Adestrador criado com sucesso', id: novoAdestrador._id });
-        } catch (error) {
-          res.status(500).json({ message: "Erro interno do servidor. Não foi possível criar o adestrador." });
-        }
+        return res.status(422).json({ message: "Por favor, utilize outro e-mail" });
       }
-    });
 
-    app.put("/adestrador/:id", async (req, res) => {
-      const id = req.params.id;
-      const data = req.body;
-      const valido = await AdestradorValidacao.validarBusca(id);
-      if (valido) {
-        await AdestradorRepository.atualizarAdestrador(id, data);
-        res.status(200).json({ message: "Adestrador atualizado com sucesso" });
-      } else {
-        res.status(404).json({ message: "Adestrador não encontrado" });
+      try {
+        const senhaHash = await bcrypt.hash(body.senha, 10);
+        const novoAdestrador = new Adestrador({ ...body, senha: senhaHash });
+        await novoAdestrador.save();
+        res.status(201).json({ message: 'Adestrador criado com sucesso', id: novoAdestrador._id });
+      } catch (error) {
+        res.status(500).json({ message: "Erro interno do servidor. Não foi possível criar o adestrador." });
       }
     });
 
@@ -94,9 +76,52 @@ class AdestradorController {
         res.status(404).json({ success: false, message: "E-mail não encontrado no banco de dados" });
       }
     });
-  }
 
-  
+    app.get("/adestrador/email", async (req, res) => {
+      const { email } = req.query;
+      const adestrador = await AdestradorRepository.buscarAdestradorPorEmail(email);
+    
+      if (adestrador) {
+        res.status(200).json(adestrador);
+      } else {
+        res.status(404).json({ message: "Adestrador não encontrado" });
+      }
+    });
+
+    app.patch("/adestrador/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const valido = await AdestradorValidacao.validarBusca(id);
+      if (!valido) {
+        return res.status(404).json({ message: "Adestrador não encontrado" });
+      }
+
+      try {
+        const adestrador = await Adestrador.findById(id);
+
+        if (!adestrador) {
+          return res.status(404).json({ message: "Adestrador não encontrado" });
+        }
+
+        if (data.nome) {
+          adestrador.nome = data.nome;
+        }
+        if (data.email) {
+          adestrador.email = data.email;
+        }
+        if (data.senha) {
+          const senhaHash = await bcrypt.hash(data.senha, 10);
+          adestrador.senha = senhaHash;
+        }
+
+        await adestrador.save();
+
+        res.status(200).json({ message: "Adestrador atualizado com sucesso" });
+      } catch (error) {
+        res.status(500).json({ message: "Erro interno do servidor. Não foi possível atualizar o adestrador." });
+      }
+    });
+  }
 }
 
 export default AdestradorController;
